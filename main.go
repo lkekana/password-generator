@@ -35,16 +35,16 @@ func main() {
 						fmt.Fprintln(os.Stderr, "Error generating password:", err)
 						return
 					}
-					fmt.Print(string(password))
+					os.Stdout.Write(password)
 				} else {
-
 					for i := 0; i < count; i++ {
 						password, err := generatePassword(length, includeUppercase, includeLowercase, includeNumbers, includeSpecialChars)
 						if err != nil {
 							fmt.Fprintf(os.Stderr, "Error generating password %d: %v\n", i+1, err)
 							continue
 						}
-						fmt.Println(string(password))
+						os.Stdout.Write(password)
+						os.Stdout.Write([]byte("\n"))
 					}
 				}
 			} else {
@@ -94,8 +94,9 @@ func main() {
 						continue
 					}
 					elapsed := time.Since(start)
-					// fmt.Println(password, "(Execution took", elapsed)
-					fmt.Printf("Password %d: %s (Execution took %s)\n", i+1, string(password), elapsed.String())
+					fmt.Printf("Password %d: ", i+1)
+					os.Stdout.Write(password)
+					fmt.Printf(" (Execution took %s)\n", elapsed.String())
 				}
 				initElapsed := time.Since(initStart)
 				fmt.Println("Total execution time for", count, "passwords:", color.GreenString("%s", initElapsed))
