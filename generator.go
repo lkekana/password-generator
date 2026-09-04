@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"runtime"
 
 	"github.com/fatih/color"
 )
@@ -91,4 +92,13 @@ func generatePassword(length int, includeUppercase, includeLowercase, includeNum
 			}
 		}
 	}
+}
+
+func zeroOutPassword(password []byte) {
+	for i := range password {
+		password[i] = 0
+	}
+	// ensures the password will only be dealt with by the garbage collector after this function has completed
+	// will ensure the function is not optimized away by the compiler and is actually zeroed out in memory
+	runtime.KeepAlive(password)
 }
