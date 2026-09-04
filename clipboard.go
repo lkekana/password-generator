@@ -1,25 +1,18 @@
 package main
 
 import (
+	"encoding/binary"
 	"fmt"
 	"os"
 	"path/filepath"
-	"unsafe"
 
 	"golang.design/x/clipboard"
 )
 
-// it's 8 bytes (size of int) on my computer but just in case
-func getSizeOfClipboardFormat() int {
-	sizeTxt := unsafe.Sizeof(clipboard.FmtText)
-	sizeImg := unsafe.Sizeof(clipboard.FmtImage)
-	return max(int(sizeTxt), int(sizeImg))
-}
-
 func getAppDir() string {
 	baseDir, err := os.UserConfigDir()
 	if err != nil {
-		fmt.Println("Error getting config directory:", err)
+		fmt.Fprintln(os.Stderr, "Error getting config directory:", err)
 		return ""
 	}
 
@@ -27,7 +20,7 @@ func getAppDir() string {
 
 	err = os.MkdirAll(appDir, 0755)
 	if err != nil {
-		fmt.Println("Error creating app directory:", err)
+		fmt.Fprintln(os.Stderr, "Error creating app directory:", err)
 		return ""
 	}
 
@@ -57,33 +50,34 @@ func preserveClipboard(data []byte, format clipboard.Format) {
 
 	appDir := getAppDir()
 	if appDir == "" {
-		fmt.Println("Failed to get or create app directory.")
+		fmt.Fprintln(os.Stderr, "Failed to get or create app directory.")
 		return
 	}
 
 	file, err := os.Create(filepath.Join(appDir, ".clipboard"))
 	if err != nil {
-		fmt.Println("Error creating file:", err)
+		fmt.Fprintln(os.Stderr, "Error creating file:", err)
 		return
 	}
 
 	defer file.Close()
 
-	// write the format with as many bytes as the size of the clipboard format (8 bytes on my computer)
-	// then write the current clipboard contents
-	formatBytes := make([]byte, getSizeOfClipboardFormat())
-	formatBytes = append(formatBytes, byte(format))
-	fileContents := append(formatBytes, current...)
-
-	_, err = file.Write(fileContents)
+	// let Go handle the size of the clipboard format by writing it as a binary value
+	err = binary.Write(file, binary.LittleEndian, format)
 	if err != nil {
-		fmt.Println("Error writing to file:", err)
+		fmt.Fprintln(os.Stderr, "Error writing format to file:", err)
+		return
+	}
+
+	_, err = file.Write(current)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error writing to file:", err)
 		return
 	}
 
 	err = file.Sync()
 	if err != nil {
-		fmt.Println("Error syncing file:", err)
+		fmt.Fprintln(os.Stderr, "Error syncing file:", err)
 		return
 	}
 }
@@ -91,15 +85,13 @@ func preserveClipboard(data []byte, format clipboard.Format) {
 func restoreClipboard() {
 	appDir := getAppDir()
 	if appDir == "" {
-		fmt.Println("Failed to get or create app directory.")
+		fmt.Fprintln(os.Stderr, "Failed to get or create app directory.")
 		return
 	}
 
-	clipboardFormatSize := getSizeOfClipboardFormat()
-
 	file, err := os.Open(filepath.Join(appDir, ".clipboard"))
 	if err != nil {
-		fmt.Println("Error opening file:", err)
+		fmt.Fprintln(os.Stderr, "No clipboard backup found to restore.")
 		return
 	}
 
@@ -107,31 +99,31 @@ func restoreClipboard() {
 
 	fileInfo, err := file.Stat()
 	if err != nil {
-		fmt.Println("Error getting file info:", err)
+		fmt.Fprintln(os.Stderr, "Error getting file info:", err)
 		return
 	}
-
 	fileSize := fileInfo.Size()
-	if fileSize < int64(clipboardFormatSize) {
-		fmt.Println("File is too small to contain clipboard data.")
-		return
-	}
 
-	formatBytes := make([]byte, clipboardFormatSize)
-	_, err = file.Read(formatBytes)
+	var format clipboard.Format
+	err = binary.Read(file, binary.LittleEndian, &format)
 	if err != nil {
-		fmt.Println("Error reading format from file:", err)
+		fmt.Fprintln(os.Stderr, "Error reading clipboard format from backup file:", err)
 		return
 	}
 
-	format := clipboard.Format(formatBytes[len(formatBytes)-1])
-
-	data := make([]byte, fileSize-int64(clipboardFormatSize))
+	data := make([]byte, fileSize-int64(binary.Size(format)))
 	_, err = file.Read(data)
 	if err != nil {
-		fmt.Println("Error reading data from file:", err)
+		fmt.Fprintln(os.Stderr, "Error reading data from backup file:", err)
 		return
 	}
 
 	writeClipboard(data, format)
+
+	// delete the file
+	err = os.Remove(filepath.Join(appDir, ".clipboard"))
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error deleting backup file:", err)
+		return
+	}
 }
