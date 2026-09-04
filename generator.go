@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+
+	"github.com/fatih/color"
 )
 
 func randomInt(max *big.Int) int {
@@ -83,6 +85,10 @@ func generatePassword(length int, includeUppercase, includeLowercase, includeNum
 
 		if meetsRequirements(password, includeUppercase, includeLowercase, includeNumbers, includeSpecialChars) {
 			return password, nil
+		} else {
+			if debug {
+				color.Yellow("Generated password did not meet requirements, regenerating...")
+			}
 		}
 	}
 }

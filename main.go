@@ -111,7 +111,7 @@ func main() {
 	rootCmd.Flags().BoolVar(&includeNumbers, "num", true, "Include numbers")
 	rootCmd.Flags().BoolVar(&includeSpecialChars, "special", false, "Include special characters")
 	rootCmd.Flags().IntVarP(&count, "count", "c", 1, "Number of passwords to generate")
-	rootCmd.Flags().BoolVar(&printWithNewline, "newline", false, "Print a newline after each password")
+	rootCmd.Flags().BoolVar(&printWithNewline, "newline", false, "Print a newline after generating a single password (useful for piping output & does not apply when generating multiple passwords)")
 	rootCmd.Flags().BoolVarP(&debug, "debug", "d", false, "Enable debug mode")
 
 	if err := rootCmd.Execute(); err != nil {
