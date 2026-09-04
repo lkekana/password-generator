@@ -6,8 +6,8 @@ import (
 	"math/big"
 )
 
-func randomInt(max int) int {
-	n, err := rand.Int(rand.Reader, big.NewInt(int64(max)))
+func randomInt(max big.Int) int {
+	n, err := rand.Int(rand.Reader, &max)
 	if err != nil {
 		panic(err)
 	}
@@ -34,8 +34,9 @@ func generatePassword(length int, includeUppercase, includeLowercase, includeNum
 	}
 
 	password := make([]byte, length)
+	maxBig := big.NewInt(int64(len(charset)))
 	for i := range password {
-		password[i] = charset[randomInt(len(charset))]
+		password[i] = charset[randomInt(*maxBig)]
 	}
 
 	return password, nil
