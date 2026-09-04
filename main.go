@@ -20,6 +20,7 @@ var includeSpecialChars bool
 var count int
 var debug bool
 var printWithNewline bool
+var copyToClipboard bool
 
 func main() {
 	rootCmd := &cobra.Command{
@@ -27,6 +28,27 @@ func main() {
 		Short: "A simple password generator CLI",
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
+			if length <= 0 {
+				fmt.Fprintln(os.Stderr, color.RedString("Error: Password length must be greater than 0"))
+				return
+			}
+
+			if !includeUppercase && !includeLowercase && !includeNumbers && !includeSpecialChars {
+				fmt.Fprintln(os.Stderr, color.RedString("Error: At least one character set must be selected"))
+				return
+			}
+
+			if count <= 0 {
+				fmt.Fprintln(os.Stderr, color.RedString("Error: Count must be greater than 0"))
+				return
+			}
+
+			if copyToClipboard && count > 1 {
+				color.Yellow("Warning: Copying multiple passwords to clipboard is not supported. Only 1 password will be generated and copied to clipboard.")
+				count = 1
+				printWithNewline = false
+			}
+
 			if !debug {
 				if count == 1 && !printWithNewline {
 					// avoid printing a newline when only one password is generated
@@ -35,8 +57,22 @@ func main() {
 						fmt.Fprintln(os.Stderr, "Error generating password:", err)
 						return
 					}
-					os.Stdout.Write(password)
-					zeroOutPassword(password)
+					if copyToClipboard {
+						// preserveClipboard()
+						writeClipboard(password, clipboard.FmtText)
+						zeroOutPassword(password)
+
+						fmt.Println(color.GreenString("Password copied to clipboard."))
+						// fmt.Println(color.YellowString("Note: Clipboard will be cleared in 10 seconds."))
+
+						// time.Sleep(10 * time.Second)
+
+						// restoreClipboard()
+						return
+					} else {
+						os.Stdout.Write(password)
+						zeroOutPassword(password)
+					}
 				} else {
 					for i := 0; i < count; i++ {
 						password, err := generatePassword(length, includeUppercase, includeLowercase, includeNumbers, includeSpecialChars)
@@ -79,7 +115,7 @@ func main() {
 						fmt.Println("Clipboard does not contain text data either.")
 					} else {
 						fmt.Println("Clipboard contains text data of size:", color.MagentaString("%d bytes", len(clip)))
-						fmt.Println("Clipboard content:", string(clip))
+						// fmt.Println("Clipboard content:", string(clip))
 					}
 				} else {
 					fmt.Println("Clipboard contains image data of size:", color.MagentaString("%d bytes", len(clip)))
@@ -109,6 +145,8 @@ func main() {
 	}
 
 	rootCmd.Flags().IntVarP(&length, "length", "l", 16, "Length of the password")
+	// rootCmd.Flags().BoolVarP(&copyToClipboard, "copy", "y", false, "Copy to clipboard and clear after 10 seconds")
+	rootCmd.Flags().BoolVarP(&copyToClipboard, "copy", "y", false, "Copy to clipboard (only works when generating a single password)")
 	rootCmd.Flags().BoolVar(&includeUppercase, "upper", true, "Include uppercase letters")
 	rootCmd.Flags().BoolVar(&includeLowercase, "lower", true, "Include lowercase letters")
 	rootCmd.Flags().BoolVar(&includeNumbers, "num", true, "Include numbers")
