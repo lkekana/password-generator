@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/rand"
 	"errors"
+	"fmt"
 	"math/big"
 )
 
@@ -12,6 +13,25 @@ func randomInt(max big.Int) int {
 		panic(err)
 	}
 	return int(n.Int64())
+}
+
+// ensure password has all the required character types based on the user's selection
+func meetsRequirements(pwd []byte, upper, lower, num, special bool) bool {
+	var hasUpper, hasLower, hasNum, hasSpecial bool
+	for _, c := range pwd {
+		switch {
+		case c >= 'A' && c <= 'Z':
+			hasUpper = true
+		case c >= 'a' && c <= 'z':
+			hasLower = true
+		case c >= '0' && c <= '9':
+			hasNum = true
+		default:
+			hasSpecial = true
+		}
+	}
+	// only returns true if the password meets all the requirements specified by the user
+	return (!upper || hasUpper) && (!lower || hasLower) && (!num || hasNum) && (!special || hasSpecial)
 }
 
 func generatePassword(length int, includeUppercase, includeLowercase, includeNumbers, includeSpecialChars bool) ([]byte, error) {
@@ -33,11 +53,36 @@ func generatePassword(length int, includeUppercase, includeLowercase, includeNum
 		return nil, errors.New("no character sets selected")
 	}
 
-	password := make([]byte, length)
-	maxBig := big.NewInt(int64(len(charset)))
-	for i := range password {
-		password[i] = charset[randomInt(*maxBig)]
+	// ensure that the password length is long enough for the required character types
+	// (prevents infinite loops in rejection sampling below)
+	requiredCount := 0
+	if includeUppercase {
+		requiredCount++
+	}
+	if includeLowercase {
+		requiredCount++
+	}
+	if includeNumbers {
+		requiredCount++
+	}
+	if includeSpecialChars {
+		requiredCount++
 	}
 
-	return password, nil
+	if length < requiredCount {
+		return nil, fmt.Errorf("password length is too short for the selected character requirements. Minimum length required: %d", requiredCount)
+	}
+
+	password := make([]byte, length)
+	maxBig := big.NewInt(int64(len(charset)))
+
+	for {
+		for i := range password {
+			password[i] = charset[randomInt(*maxBig)]
+		}
+
+		if meetsRequirements(password, includeUppercase, includeLowercase, includeNumbers, includeSpecialChars) {
+			return password, nil
+		}
+	}
 }
