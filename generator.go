@@ -7,8 +7,8 @@ import (
 	"math/big"
 )
 
-func randomInt(max big.Int) int {
-	n, err := rand.Int(rand.Reader, &max)
+func randomInt(max *big.Int) int {
+	n, err := rand.Int(rand.Reader, max)
 	if err != nil {
 		panic(err)
 	}
@@ -78,7 +78,7 @@ func generatePassword(length int, includeUppercase, includeLowercase, includeNum
 
 	for {
 		for i := range password {
-			password[i] = charset[randomInt(*maxBig)]
+			password[i] = charset[randomInt(maxBig)]
 		}
 
 		if meetsRequirements(password, includeUppercase, includeLowercase, includeNumbers, includeSpecialChars) {
