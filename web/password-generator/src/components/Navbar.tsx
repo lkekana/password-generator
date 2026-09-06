@@ -1,5 +1,6 @@
 import { Link, useMatchRoute } from "@tanstack/react-router";
 import { Button } from "./ui/button";
+import Star13 from "./stars/s13";
 
 export function Navbar() {
 	const matchRoute = useMatchRoute();
@@ -8,6 +9,8 @@ export function Navbar() {
 
 	return (
 		<header className="w-full border-b-4 border-black bg-white px-4 md:px-8 py-4 flex items-center justify-between shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sticky top-0 z-50">
+			<div className="flex items-center gap-2 md:gap-4">
+			<Star13 className="w-16 h-16" />
 			<div className="flex flex-col">
 				<Link
 					to="/"
@@ -18,6 +21,7 @@ export function Navbar() {
 				<p className="text-xs md:text-sm text-gray-600 hidden sm:block">
 					A simple, secure password generator
 				</p>
+			</div>
 			</div>
 
 			<nav className="flex items-center gap-2 md:gap-4">
