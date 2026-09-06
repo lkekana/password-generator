@@ -1,79 +1,127 @@
-import {
-	Menubar,
-	MenubarCheckboxItem,
-	MenubarContent,
-	MenubarItem,
-	MenubarMenu,
-	MenubarRadioGroup,
-	MenubarRadioItem,
-	MenubarSeparator,
-	MenubarShortcut,
-	MenubarSub,
-	MenubarSubContent,
-	MenubarSubTrigger,
-	MenubarTrigger,
-} from "#/components/ui/menubar";
 import { createFileRoute } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardFooter,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "#/components/ui/checkbox";
-import { Marker, MarkerContent } from "#/components/ui/marker";
+import { Marker } from "#/components/ui/marker";
 import { Clipboard, Minus, Plus, RefreshCw } from "lucide-react";
 import { Textarea } from "#/components/ui/textarea";
 import { Slider } from "#/components/ui/slider";
 import { useEffect, useState } from "react";
-import { Badge } from "#/components/ui/badge";
-import {
-	NavigationMenu,
-	NavigationMenuContent,
-	NavigationMenuItem,
-	NavigationMenuLink,
-	NavigationMenuList,
-	NavigationMenuTrigger,
-	navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu";
 import type { CheckedState } from "@radix-ui/react-checkbox";
-import { cn } from "#/lib/utils";
-import { SidebarInset, SidebarProvider } from "#/components/ui/sidebar";
-import { Navbar } from "#/components/Navbar";
+import { generatePassword } from "#/generator";
+import { ScrollArea } from "@radix-ui/react-scroll-area";
+import ClipboardButton from "#/components/ClipboardButton";
 
 export const Route = createFileRoute("/")({ component: Home });
 
 type MyTabs = "single" | "multiple";
-const samplePasswords = 
-	[
-		"GeneratedPassword123!",
-		"AnotherPassword456!",
-		"YetAnotherPassword789!",
-		"PasswordExample000!",
-		"FinalPasswordExample999!",
-	];
+// const samplePasswords = [
+// 	"GeneratedPassword123!",
+// 	"AnotherPassword456!",
+// 	"YetAnotherPassword789!",
+// 	"PasswordExample000!",
+// 	"FinalPasswordExample999!",
+// ];
 
 function Home() {
 	const [activeTab, setActiveTab] = useState<MyTabs>("single");
-	const [password, setPassword] = useState<string>("GeneratedPassword123!");
+	const [password, setPassword] = useState<string>(() =>
+		generatePassword(16, true, true, true, false),
+	);
 	const [passwordLength, setPasswordLength] = useState(16);
 	const [includeUppercase, setIncludeUppercase] = useState<CheckedState>(true);
 	const [includeLowercase, setIncludeLowercase] = useState<CheckedState>(true);
 	const [includeNumbers, setIncludeNumbers] = useState<CheckedState>(true);
 	const [includeSpecial, setIncludeSpecial] = useState<CheckedState>(false);
 
-	const [multiplePasswordCount, setMultiplePasswordCount] = useState(5);
-	const [generatedPasswords, setGeneratedPasswords] = useState<string[]>(samplePasswords);
+	const [multiplePasswordCount, setMultiplePasswordCount] = useState(4);
+	const [generatedPasswords, setGeneratedPasswords] = useState<string[]>(() => {
+		const newPasswords: string[] = [];
+		for (let i = 0; i < multiplePasswordCount; i++) {
+			newPasswords.push(
+				generatePassword(
+					passwordLength,
+					!!includeUppercase,
+					!!includeLowercase,
+					!!includeNumbers,
+					!!includeSpecial,
+				),
+			);
+		}
+		return newPasswords;
+	});
+
+	const handleRegenerate = () => {
+		if (activeTab === "single") {
+			setPassword(() =>
+				generatePassword(
+					passwordLength,
+					!!includeUppercase,
+					!!includeLowercase,
+					!!includeNumbers,
+					!!includeSpecial,
+				),
+			);
+		} else if (activeTab === "multiple") {
+			setGeneratedPasswords(() => {
+				const newPasswords: string[] = [];
+				for (let i = 0; i < multiplePasswordCount; i++) {
+					newPasswords.push(
+						generatePassword(
+							passwordLength,
+							!!includeUppercase,
+							!!includeLowercase,
+							!!includeNumbers,
+							!!includeSpecial,
+						),
+					);
+				}
+				return newPasswords;
+			});
+		}
+	};
 
 	useEffect(() => {
-		setGeneratedPasswords(samplePasswords.slice(0, multiplePasswordCount));
-	}, [multiplePasswordCount]);
+		// setGeneratedPasswords(samplePasswords.slice(0, multiplePasswordCount));
+		if (activeTab === "single") {
+			setPassword(() =>
+				generatePassword(
+					passwordLength,
+					!!includeUppercase,
+					!!includeLowercase,
+					!!includeNumbers,
+					!!includeSpecial,
+				),
+			);
+		} else if (activeTab === "multiple") {
+			setGeneratedPasswords(() => {
+				const newPasswords: string[] = [];
+				for (let i = 0; i < multiplePasswordCount; i++) {
+					newPasswords.push(
+						generatePassword(
+							passwordLength,
+							!!includeUppercase,
+							!!includeLowercase,
+							!!includeNumbers,
+							!!includeSpecial,
+						),
+					);
+				}
+				return newPasswords;
+			});
+		}
+	}, [
+		multiplePasswordCount,
+		passwordLength,
+		includeUppercase,
+		includeLowercase,
+		includeNumbers,
+		includeSpecial,
+		activeTab,
+	]);
 
 	return (
 		<div className="pt-8 w-screen flex justify-center">
@@ -170,9 +218,7 @@ function Home() {
 										value={password}
 										onChange={(e) => setPassword(e.target.value)}
 									/>
-									<Button size="icon" className="shrink">
-										<Clipboard />
-									</Button>
+									<ClipboardButton textToCopy={password} className="shrink" />
 								</div>
 							</TabsContent>
 							<TabsContent value="multiple" className="w-full">
@@ -186,10 +232,11 @@ function Home() {
 												<Button
 													size="icon"
 													variant="neutral"
-													onClick={() =>
-														setMultiplePasswordCount((prev) =>
-															Math.max(1, prev - 1),
-														)
+													onClick={
+														() =>
+															setMultiplePasswordCount((prev) =>
+																Math.max(1, prev - 1),
+															)
 														// setGeneratedPasswords((prev) =>
 														// 	samplePasswords.slice(0, Math.max(1, prev.length - 1)),
 														// )
@@ -208,9 +255,7 @@ function Home() {
 														const val = parseInt(e.target.value, 10);
 														if (!Number.isNaN(val)) {
 															// setValue(Math.min(max, Math.max(min, val)));
-															setMultiplePasswordCount(() =>
-																Math.max(1, val),
-															);
+															setMultiplePasswordCount(() => Math.max(1, val));
 															// setGeneratedPasswords((prev) => {
 															// 	return samplePasswords.slice(0, Math.max(1, val));
 															// });
@@ -222,8 +267,8 @@ function Home() {
 												<Button
 													size="icon"
 													variant="neutral"
-													onClick={() =>
-														setMultiplePasswordCount((prev) => prev + 1)
+													onClick={
+														() => setMultiplePasswordCount((prev) => prev + 1)
 														// setGeneratedPasswords((prev) => {
 														// 	const newCount = prev.length + 1;
 														// 	return samplePasswords.slice(0, newCount);
@@ -237,7 +282,7 @@ function Home() {
 										</div>
 
 										<Textarea
-											readOnly
+											// readOnly
 											rows={5}
 											className="font-mono font-medium"
 											value={generatedPasswords.join("\n")}
@@ -251,14 +296,15 @@ function Home() {
 								</div>
 							</TabsContent>
 							<div className="w-full flex gap-2">
-								<Button size="icon" className="grow">
+								<Button size="icon" className="grow" onClick={handleRegenerate}>
 									Regenerate
 									<RefreshCw />
 								</Button>
 								{activeTab === "multiple" && (
-									<Button size="icon" className="shrink">
-										<Clipboard />
-									</Button>
+									<ClipboardButton
+										textToCopy={generatedPasswords.join("\n")}
+										className="shrink"
+									/>
 								)}
 							</div>
 						</div>
