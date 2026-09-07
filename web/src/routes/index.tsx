@@ -9,7 +9,7 @@ import { Marker } from "#/components/ui/marker";
 import { Clipboard, Minus, Plus, RefreshCw } from "lucide-react";
 import { Textarea } from "#/components/ui/textarea";
 import { Slider } from "#/components/ui/slider";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { CheckedState } from "@radix-ui/react-checkbox";
 import { generatePassword } from "#/generator";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
@@ -155,10 +155,11 @@ function Home() {
 		includeNumbers,
 		includeSpecial,
 		activeTab,
+		generatePasswordSafe,
 	]);
 
 	return (
-		<div className="pt-8 w-screen flex justify-center">
+		<div className="pt-6 md:pt-8 px-4 w-screen flex justify-center">
 			<Tabs
 				value={activeTab}
 				onValueChange={(value) => setActiveTab(value as MyTabs)}
@@ -168,7 +169,7 @@ function Home() {
 					<TabsTrigger value="single">Single</TabsTrigger>
 					<TabsTrigger value="multiple">Multiple</TabsTrigger>
 				</TabsList>
-				<Card>
+				<Card className="gap-2 md:gap-4">
 					{/* <CardHeader>
 							<CardTitle>Config</CardTitle>
 							<CardDescription>
@@ -176,27 +177,29 @@ function Home() {
 								done.
 							</CardDescription>
 						</CardHeader> */}
-					<CardContent className="grid gap-4">
-						<div className="flex gap-3">
+					<CardContent className="grid w-full">
+						<div className="flex flex-col md:flex-row gap-2 md:gap-3 w-full md:items-center">
 							<Label htmlFor="password-length">Password Length</Label>
-							<Slider
-								step={1}
-								min={4}
-								max={128}
-								value={[passwordLength]}
-								onValueChange={(value) => setPasswordLength(value[0])}
-							/>
-							<Input
-								id="password-length"
-								type="number"
-								min={4}
-								max={128}
-								value={passwordLength}
-								onChange={(e) => setPasswordLength(Number(e.target.value))}
-								className="w-1/6"
-							/>
+							<div className="flex items-center gap-2 w-full">
+								<Slider
+									step={1}
+									min={4}
+									max={128}
+									value={[passwordLength]}
+									onValueChange={(value) => setPasswordLength(value[0])}
+								/>
+								<Input
+									id="password-length"
+									type="number"
+									min={4}
+									max={128}
+									value={passwordLength}
+									onChange={(e) => setPasswordLength(Number(e.target.value))}
+									className="w-1/5 md:w-1/7 text-center px-2"
+								/>
+							</div>
 						</div>
-						<div className="flex gap-4">
+						<div className="flex flex-col md:flex-row pt-4 gap-4">
 							<div className="flex gap-2 items-center">
 								<Checkbox
 									id="use-uppercase"
@@ -330,7 +333,12 @@ function Home() {
 								</div>
 							</TabsContent>
 							<div className="w-full flex gap-2">
-								<Button size="icon" className="grow" onClick={handleRegenerate}>
+								<Button
+									size="icon"
+									className="grow"
+									onClick={handleRegenerate}
+									disabled={generationDisabled}
+								>
 									Regenerate
 									<RefreshCw />
 								</Button>

@@ -5,6 +5,7 @@ import { TanStackDevtools } from '@tanstack/react-devtools'
 import appCss from '../styles.css?url'
 import { Navbar } from '#/components/Navbar'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { Toaster } from '#/components/ui/sonner'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -42,6 +43,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <QueryClientProvider client={queryClient}>
             <Navbar />
             {children}
+            <Toaster />
             <TanStackDevtools
               config={{
                 position: 'bottom-right',

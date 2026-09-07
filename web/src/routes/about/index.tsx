@@ -17,7 +17,7 @@ export const Route = createFileRoute("/about/")({
 
 function RouteComponent() {
 	return (
-		<div className="pt-8 w-screen flex justify-center">
+		<div className="pt-6 md:pt-8 px-4 w-screen flex justify-center">
 		<Card className="w-full max-w-sm">
 			<CardHeader>
 				<CardTitle>About</CardTitle>
