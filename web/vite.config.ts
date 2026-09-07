@@ -9,11 +9,7 @@ import netlify from '@netlify/vite-plugin-tanstack-start'
 
 const config = defineConfig({
   resolve: { tsconfigPaths: true },
-  plugins: [devtools(), netlify(), tailwindcss(), tanstackStart({
-    spa: {
-      enabled: true,
-    },
-  }), viteReact()],
+  plugins: [devtools(), netlify(), tailwindcss(), tanstackStart(), viteReact()],
 })
 
 export default config
