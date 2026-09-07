@@ -128,3 +128,9 @@ for (let i = 0; i < 50; i++) {
     generatePassword(PASSWORD_LENGTH, true, true, true, false);
 }
 console.timeEnd("Password generation time (50 passwords)");
+
+console.time("Password generation time (100 passwords)");
+for (let i = 0; i < 100; i++) {
+    generatePassword(PASSWORD_LENGTH, true, true, true, false);
+}
+console.timeEnd("Password generation time (100 passwords)");

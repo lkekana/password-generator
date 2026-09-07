@@ -4,6 +4,10 @@
 
 `password-generator` is a lightweight CLI tool written in Go that generates cryptographically secure passwords. I built this as a side project to replace my reliance on online password generators, and to get hands-on experience with Go and practical security implementations.
 
+I've also built a web version of this password generator at https://lesedi-pw.netlify.app/
+
+![Web example](./assets/web-example.png)
+
 ## Why?
 
 I’ve been using online tools to generate passwords for a while ([passwordsgenerator.net](https://passwordsgenerator.net/) - which is now shut down, [LastPass](https://www.lastpass.com/features/password-generator), etc), but I was always really skeptical of the security measures and practices of these websites. I didn't know if they were truly client side (and the passwords couldn't be tracked by malicious actors) or if they were truly safe from interception/interference, whether they were truly random, etc.
@@ -17,6 +21,18 @@ I'll honest and say I'm not super passionate about computer security (the course
 I also chose to write this in Go. I'm trying to familiarise myself with Go more and more. I did consider using Rust because I'd have more control over the memory and I wouldn't have to worry about Go's garbage collector possibly getting in the way but Go was the right choice for my learning goals and getting it down quicker.
 
 I'm aware the *most* secure generation methods would involve doing math straight on the CPU or GPU registers, but I wasn't sure where I'd start with that, and realisitically, I'd probably make a new mistakes trying to re-invent the wheel, so I stuck with Go's `crypto/rand` and focused on what I could control: memory management and clipboard hygiene.
+
+## Web Version
+
+I built a web version of this password generator, which you can find [here](https://lesedi-pw.netlify.app/).
+
+It's built with [Tanstack Start](https://tanstack.com/start/latest) (a high speed Next.js alternative) and uses [Shadcn UI](https://ui.shadcn.com/) components, with [Neobrutalism.dev](https://www.neobrutalism.dev/) styling for a unique & simple look.
+
+The web version is client-side (passwords are securely generated in your browser - no server communication) and uses similar password generation logic as the CLI. Using your browser's native `Crypto.getRandomValues` function for true and secure randomness, and the same rejection sampling method to ensure the password meets your requirements.
+
+The web version does have the drawback of keeping the password in your browser's memory while it's on-screen and the website is open, but is completely safe to use otherwise.
+
+I'm also thinking about making a PWA (Progressive Web App) implementation, so you can install it on your device and use it offline.
 
 ## Installation
 
@@ -121,18 +137,17 @@ password-generator -l 24 --special -y
 password-generator -c 5
 ```
 
-![picture alt](./assets/example.png)
+![CLI example](./assets/example.png)
 
 ## Design Choices & Security Considerations
 
 - **Memory Zeroing:** Because Go uses a Garbage Collector, sensitive data like passwords can linger in memory longer than you'd like. To address this, I implemented a `zeroOutPassword` function paired with `runtime.KeepAlive`. This ensures the password is explicitly overwritten with zeros after it's printed / copied and prevents the compiler from optimizing the zeroing operation away before the GC sweeps it.
 - **Regeneration & Modulo Bias (Rejection Sampling):** To ensure the password contains all required character types (upper, lower, numbers, special), the generator creates the full password and checks it against your requirements. If it fails, it throws it out and regenerates. This avoids the predictable patterns and modulo bias that come from forcing specific characters into specific indexes.
-- **No Web Version (Yet):** This is strictly a CLI tool for now. Building a web version introduces a whole new can of worms. Maybe I'll get to that after this.
 
 ## Performance
 
 <details>
-<summary>A sample run for 50 passwords:</summary>
+<summary>A sample run for 50 passwords (CLI):</summary>
 
 ```bash
 $ go run . --debug -c 50 -l 24
@@ -208,10 +223,26 @@ Total execution time for 50 passwords: 2.41866ms
 First password takes the longest to generate because of the time needed to create the charset, though it seems that the Golang compiler reuses the charset making subsequent passwords a lot faster.
 </details>
 
+<details>
+<summary>A sample run for 50 passwords (Web):</summary>
+
+```bash
+$ deno run -A web/generator.ts 
+Password generation time: 2.12ms
+Password generation time (50 passwords): 3.72ms
+Password generation time (100 passwords): 8.82ms
+```
+
+Similar to the CLI, the first password takes the longest to generate because of the time needed to create the charset, though it also seems that the Deno runtime reuses the charset making subsequent passwords a lot faster.
+</details>
+
 ## Roadmap
 
 - [ ] **Clipboard Integration:** Possibly re-enable the 10-second clipboard timeout and restore logic across all supported OS environments. I had it implemented but removed it because I just didn't like the UX.
-- [ ] **Web Version:** Eventually port the core logic to a secure, fully client-side web application (maybe via WebAssembly?) & PWA.
+- [x] **Web Version:** Eventually port the core logic to a secure, fully client-side web application (maybe via WebAssembly?) & PWA.
+  - [x] **Web Version Clipboard Integration:** Implement clipboard integration for the web version, allowing users to copy generated passwords directly to their clipboard.
+  - [ ] **Web Version Password Strength Meter:** Add a password strength meter to the web version, providing users with feedback on the strength of their generated passwords.
+  - [ ] **Progressive Web App (PWA) Support:** Enhance the web version to support offline usage and installation on devices as a PWA.
 - [ ] **Cross-Platform Notifications:** Add native OS notifications (via `beeep` or similar) when the clipboard is successfully restored. Also tried this out but it was annoying so I disabled it.
 
 ## License
