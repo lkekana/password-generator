@@ -144,6 +144,61 @@ password-generator -c 5
 - **Memory Zeroing:** Because Go uses a Garbage Collector, sensitive data like passwords can linger in memory longer than you'd like. To address this, I implemented a `zeroOutPassword` function paired with `runtime.KeepAlive`. This ensures the password is explicitly overwritten with zeros after it's printed / copied and prevents the compiler from optimizing the zeroing operation away before the GC sweeps it.
 - **Regeneration & Modulo Bias (Rejection Sampling):** To ensure the password contains all required character types (upper, lower, numbers, special), the generator creates the full password and checks it against your requirements. If it fails, it throws it out and regenerates. This avoids the predictable patterns and modulo bias that come from forcing specific characters into specific indexes.
 
+### What is Modulo Bias?
+
+Suppose our random number generator produces numbers in the range 0...9 (10 options) but we only need numbers in the range 0...2 (3 options). Usually we can squeeze the 10 options into the 3 options by using modulo arithmetic. Modulo arithmetic / the modulo operator is just a way to get the remainder from division.
+
+Eg. 10 / 3 = 3 remainder 1. In modulo arithmetic, we would say 10 mod 3 = 1 (because if you divide 10 by 3, you'll get the remainder 1).
+
+This is useful because it allows us to map a larger range of numbers into a smaller range. Any bigger number we modulo by 3 will give us a number in the range [0, 2].
+
+The issue is that, the number of remainders are not evenly distributed.
+0 mod 3 = 0
+1 mod 3 = 1
+2 mod 3 = 2
+3 mod 3 = 0
+4 mod 3 = 1
+5 mod 3 = 2
+6 mod 3 = 0
+7 mod 3 = 1
+8 mod 3 = 2
+9 mod 3 = 0
+
+```mermaid
+graph TD
+    Root([Numbers 0-9]) --> R0[Remainder 0]
+    Root --> R1[Remainder 1]
+    Root --> R2[Remainder 2]
+
+    R0 --> 0 & 3 & 6 & 9
+    R1 --> 1 & 4 & 7
+    R2 --> 2 & 5 & 8
+```
+
+```mermaid
+xychart-beta
+    title "Frequency of Remainders (Modulo 3)"
+    x-axis [Remainder 0, Remainder 1, Remainder 2]
+    y-axis "Count of Numbers" 0 --> 5
+    bar [4, 3, 3]
+```
+
+There are 4 numbers that give a remainder of 0, 3 numbers that give a remainder of 1, and 3 numbers that give a remainder of 2.
+
+So our random number generator is biased towards 0, and if we were to use this method to generate a password, it would be biased towards certain characters. This is called modulo bias.
+
+### How does Rejection Sampling solve this?
+
+Rejection sampling is a technique in stats that allows us to only sample from a distribution by generating samples from a different distribution and rejecting those that don't fit our desired distribution. In other words, limit our scope to only numbers that fit our desired distribution.
+
+In our example, we can remove the bias by rejecting any numbers that are greater than 8, because 8 is the largest number that keeps the distribution even (where each number is equally likely)
+
+So if our random number generator produces a number greater than 8, we throw it out (reject it) and generate a new number. This ensures that our random numbers are evenly distributed and not biased towards certain numbers.
+
+In my code, the `crypto/rand` package in Go is able to securely generate numbers within our desired range with an even distribution, but the rejection sampling is still necessary to ensure that the password meets the requirements of containing at least one character from each required character set.
+
+In Javascript, we generate find the largest multiple of our charset length (the number of characters available as options for the password) that is less than or equal to 256 and explicitly reject any random numbers that are greater than that maximum. This ensures that the random numbers are evenly distributed and not biased towards certain characters.
+
 ## Performance
 
 <details>
