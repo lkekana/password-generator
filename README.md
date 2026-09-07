@@ -21,7 +21,51 @@ I'm aware the *most* secure generation methods would involve doing math straight
 ## Installation
 
 ### Via Releases
-Coming soon.
+
+You can download pre-built binaries for macOS and Windows from the [latest release](https://github.com/lkekana/password-generator/releases/latest).
+
+#### macOS
+
+1. Download the appropriate archive for your Mac:
+   - **Apple Silicon (M1/M2/M3):** `password-generator_Darwin_arm64.tar.gz`
+   - **Intel:** `password-generator_Darwin_x86_64.tar.gz`
+   
+   *You can do this via your browser or directly in the terminal (Apple Silicon example):*
+   ```bash
+   curl -L -O https://github.com/lkekana/password-generator/releases/latest/download/password-generator_Darwin_arm64.tar.gz
+   ```
+
+2. Extract the archive:
+   ```bash
+   tar -xzf password-generator_Darwin_arm64.tar.gz
+   ```
+
+3. Move the binary to your PATH:
+   ```bash
+   sudo mv password-generator /usr/local/bin/password-generator
+   ```
+
+#### Windows
+
+1. Download the appropriate archive for your system (most likely `password-generator_Windows_x86_64.zip`) from the [latest release](https://github.com/lkekana/password-generator/releases/latest).
+2. Extract the `.zip` file.
+3. Move `password-generator.exe` to a directory that is included in your system's `PATH` environment variable. 
+
+*Here is a quick way to do this using PowerShell:*
+```powershell
+# 1. Create a local bin directory in your user profile
+New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\bin"
+
+# 2. Move the executable (assuming you are in the extracted folder)
+Move-Item .\password-generator.exe "$env:USERPROFILE\bin\password-generator.exe"
+
+# 3. Add the directory to your User PATH (if it's not already there)
+$currentPath = [Environment]::GetEnvironmentVariable("Path", "User")
+if ($currentPath -notlike "*$env:USERPROFILE\bin*") {
+    [Environment]::SetEnvironmentVariable("Path", "$currentPath;$env:USERPROFILE\bin", "User")
+    Write-Host "Added to PATH. Please restart your terminal to use 'password-generator'."
+}
+```
 
 ### Via Go Install
 If you have Go installed, you can easily install the CLI globally using:
@@ -36,11 +80,8 @@ git clone https://github.com/lkekana/password-generator.git
 cd password-generator
 
 # to install it in your path
-go build -trimpath -ldflags -s
-cp passwords-generator /usr/local/bin/
-
-# (optional) to install the 'pwd' alias
-cp passwords-generator /usr/local/bin/
+go build -trimpath -ldflags="-s -w"
+sudo cp passwords-generator /usr/local/bin/
 
 # to run the code, without installing
 go run .
@@ -49,17 +90,17 @@ go run .
 ## Usage
 
 ```bash
-$ pwg --help
+$ password-generator --help
 A simple password generator CLI
 
 Usage:
-  pwg [flags]
+  password-generator [flags]
 
 Flags:
   -y, --copy         Copy to clipboard (only works when generating a single password)
   -c, --count int    Number of passwords to generate (default 1)
   -d, --debug        Enable debug mode
-  -h, --help         help for pwg
+  -h, --help         help for password-generator
   -l, --length int   Length of the password (default 16)
       --lower        Include lowercase letters (default true)
       --newline      Print a newline after generating a single password (useful for piping output & does not apply when generating multiple passwords)
@@ -71,13 +112,13 @@ Flags:
 ### Examples
 ```bash
 # Generate a standard 16-character password
-pwg
+password-generator
 
 # Generate a 24-character password with special characters and copy it to the clipboard
-pwg -l 24 --special -y
+password-generator -l 24 --special -y
 
 # Generate 5 passwords and print them to stdout
-pwg -c 5
+password-generator -c 5
 ```
 
 ![picture alt](./assets/example.png)
@@ -90,7 +131,9 @@ pwg -c 5
 
 ## Performance
 
-A sample run for 50 passwords:
+<details>
+<summary>A sample run for 50 passwords:</summary>
+
 ```bash
 $ go run . --debug -c 50 -l 24
 Debug mode enabled.
@@ -105,67 +148,65 @@ Include special characters: false
 ===============================
 
 === CLIPBOARD INFORMATION ===
-Size of clipboard.FmtText: 8 bytes
-Size of clipboard.FmtImage: 8 bytes
-Clipboard does not contain image data.
-Clipboard contains text data of size: 9 bytes
+Clipboard contains data of size: 28 bytes
 =============================
 
-Password 1: TJFu3bX3B5CXxSp6DTGLVO7W (Execution took 247.395µs)
-Password 2: Gm8Lmdkc0P4iuyWlq2jlZC8y (Execution took 95.016µs)
-Password 3: bep1qtdjjd1QvP9NUNe3xudN (Execution took 55.482µs)
-Password 4: y1Y1P0DusfBlnGCeabwSD4D9 (Execution took 51.42µs)
-Password 5: k15NOVNbMuH0U3uyv2fCqi8K (Execution took 57.399µs)
-Password 6: MmwrV7ngPIGoSK9v9H395UyP (Execution took 51.3µs)
-Password 7: GFDhbE16Ct9cefPLmJcUXfmU (Execution took 53.726µs)
-Password 8: CoogiAlLnM8z0tLwqTPd10aM (Execution took 71.065µs)
-Password 9: A69ZvMQK82ipXtYI0y97Rn2A (Execution took 56.385µs)
-Password 10: Q3ccq8m8gB57XaEL0VRqpQ8l (Execution took 32.851µs)
-Password 11: EuNU35ZFfwZXVplvDXtvgBTa (Execution took 67.903µs)
-Password 12: fd37pwysxPISlVFDYFgmMht4 (Execution took 30.975µs)
-Password 13: MKYUon7QIPOKOcENcgcx1OcL (Execution took 50.682µs)
-Password 14: lWBd3HLPmXyhAQZvr7lGELVw (Execution took 50.307µs)
-Password 15: 3Z51lgVAHDjDyKss9dz7Q0hW (Execution took 51.467µs)
-Password 16: H8kwBjUEPaNxqoRiar6B83jU (Execution took 74.904µs)
-Password 17: FF9s35WrghkHMnPoS9SqWMCy (Execution took 73.305µs)
-Password 18: yDy2DK7T4J6uHF07obWJaFW7 (Execution took 59.063µs)
-Password 19: Z9Y1hUHywCA34SM0BhaWfOl4 (Execution took 52.29µs)
-Password 20: lPIKGJWDr3a0AxoOjn7ynxJN (Execution took 119.467µs)
-Password 21: Ek9x7sd6Baj9iywq0KtJ6603 (Execution took 107.44µs)
-Password 22: T4NJRU4XmzpGc8Bg8R4CmieI (Execution took 65.972µs)
-Password 23: 0yWUc9Tr10cowqNlEDEpwRly (Execution took 36.284µs)
-Password 24: YehEDFioH1XNk8WuaYotYYW2 (Execution took 83.687µs)
-Password 25: wwBJCQyVI8287fYl00IzRTQt (Execution took 39.838µs)
-Password 26: XgKY79QqKOahFjwetWWlzSBA (Execution took 43.615µs)
-Password 27: ND8FLeQ8MrrkBFXLnKAv8SyS (Execution took 51.965µs)
-Password 28: mBhVVhBybG0i0PZw3DJSCLNt (Execution took 77.604µs)
-Password 29: HJ9j06QpanePCzBXvVgoTIs5 (Execution took 78.844µs)
-Password 30: lmRqXIx2oX1yK3ewMuQvSi5i (Execution took 87.402µs)
-Password 31: lphot0a4k4ezG24EU6B6lHIS (Execution took 75.049µs)
-Password 32: A2bXcqsnJN3vD64OsoQw1qRm (Execution took 54.763µs)
-Password 33: NJAzVNIBLXiwhCNThNEJv3Ux (Execution took 32.363µs)
-Password 34: eiayVQG8xKb8TisEeNBPaVTq (Execution took 32.22µs)
-Password 35: 31Fv1ARp35sTKM4XRkEEAwV2 (Execution took 53.03µs)
-Password 36: 5AIOFs9CcciZRc4DqLT5BGhK (Execution took 50.754µs)
-Password 37: DB7sYz6sKsoZyinw4BYOapLP (Execution took 33.845µs)
-Password 38: UTH0bKEYj029j1a7c9p6yvl5 (Execution took 29.756µs)
+Password 1: Gncas5m7DKUpEEn1F9xYvOgp (Execution took 93.648µs)
+Password 2: p0aT50ina9AJo0nlk8EpGlMx (Execution took 46.198µs)
+Password 3: TW4vpSYqz5lygKFnbrFedo7j (Execution took 46.483µs)
+Password 4: rmN4zVjJYLGSxjOLrB4G7TNA (Execution took 46.238µs)
+Password 5: gxHIfgj0ozwEz4jY5c5jIiXS (Execution took 43.202µs)
+Password 6: WOdx0219iDFGo1ixQsdfTmrZ (Execution took 44.328µs)
+Password 7: rHcsAshjYqtT04X1fvuy7zgE (Execution took 42.992µs)
+Password 8: vYHa2u4AsXbrlFZMgMOuhWGp (Execution took 46.39µs)
+Password 9: 7VtIWIUHudVbT2PxjqEkKiGo (Execution took 43.327µs)
+Password 10: Hbx33C3xNDLoIwFpBRmsWXey (Execution took 44.199µs)
+Password 11: wHErhZIjMreHXvcCi5tlfYdQ (Execution took 66.13µs)
+Password 12: F8OKZVGTt6sVBBGglSKvjmNF (Execution took 46.276µs)
+Password 13: MxYp90gbwDs4crkRUMw67uVo (Execution took 42.887µs)
+Password 14: MgklnzJ7wAU3HGpe8DYEh0FR (Execution took 44.356µs)
+Password 15: E08HF8u8w15uxWqXtBEp6S4I (Execution took 44.947µs)
+Password 16: SVm5LjZBz5IH3aw2t4cCDplW (Execution took 44.569µs)
 Generated password did not meet requirements, regenerating...
-Password 39: tn8OUTx1D02eZUiH7bGVchjs (Execution took 106.306µs)
-Password 40: NmsOqr8HBVoqTaCJ7NGK8XEe (Execution took 44.523µs)
-Password 41: zITzuwsusnyEYHqYD0W5Vohy (Execution took 44.463µs)
-Password 42: N4gZXjocGlurvIv23EiY2yD8 (Execution took 39.378µs)
-Password 43: EYxKpcCSc7IixIR3b1k67Ajh (Execution took 48.866µs)
-Password 44: HaBYWdRqdaFB7mrICO80EpBq (Execution took 33.796µs)
-Password 45: maNqqXZPqFN2slery7Tue5dI (Execution took 32.153µs)
-Password 46: YjprmYYWVbFbUn07RagtpB91 (Execution took 31.035µs)
-Password 47: 5MDgmcIRjvzBT6QKa6ddF3dG (Execution took 50.234µs)
-Password 48: bqhlWt9OG1efnvEaqoDZHpfm (Execution took 34.043µs)
-Password 49: nAZNkvNPxgtvDyYL3zJd5UjT (Execution took 46.913µs)
-Password 50: 07XoikIuSOYtRhkV2tsiaeAD (Execution took 30.356µs)
-Total execution time for 50 passwords: 3.471205ms
+Password 17: oq8xQSrJgaZfeFwt0zB5QitF (Execution took 102.799µs)
+Password 18: 7A3iwdtbGMAYxGZuJ9Y2rAdd (Execution took 44.038µs)
+Password 19: Tybr6PtomqZDSDBjt5SDlB06 (Execution took 46.469µs)
+Password 20: AGflw5emeSzuIZJLk6JGtU8O (Execution took 60.074µs)
+Password 21: pLASU7Mf8NlKyFhCw6YxmRxx (Execution took 56.628µs)
+Password 22: yEtG8eXJlMRl2t6yLjeR2u1B (Execution took 43.523µs)
+Password 23: 2fgkMhvZQ2dJFKm8QuFcc51K (Execution took 40.913µs)
+Password 24: yv0PiCFrRvZbwc9DMv9jFc6c (Execution took 30.718µs)
+Password 25: qi43pSo0l52gYmSbtsGRUBMv (Execution took 30.572µs)
+Password 26: OiDXG9Rn1wKwPD2bTaV07KEl (Execution took 41.936µs)
+Password 27: jnp1UEDKNa7T9y4x627fDeEX (Execution took 30.274µs)
+Password 28: uJ0gwPK3ARVMugmIOJvBeNnd (Execution took 31.817µs)
+Password 29: ySbvaYl8hngW8rFbNVm0Vqix (Execution took 29.556µs)
+Password 30: QkCUn1zyiPp3TR1IahDjKvEr (Execution took 34.16µs)
+Password 31: EtXmvJvRFDBw2TKEZGxoZzkm (Execution took 46.531µs)
+Password 32: tfeAHFw8Lu2bAPxBUazRWx54 (Execution took 32.596µs)
+Password 33: XVUJesnseq2HlYVLVcSW66En (Execution took 30.522µs)
+Password 34: VrccEjGZ8m9Y4RXeJrMVzUq4 (Execution took 29.777µs)
+Password 35: 6qOYcVrzr75V3kTWlIueOnbc (Execution took 29.33µs)
+Password 36: A1stMKNr9q0wUoRWNWkOkMAQ (Execution took 31.513µs)
+Password 37: QjBN6Shieo8eVSz3Oja2JcF5 (Execution took 30.397µs)
+Password 38: WRi3DUQJ6w7Ezd8D0HcSOTKF (Execution took 29.35µs)
+Password 39: ZMSPCygX3OfRsrs5Or7zWguT (Execution took 31.661µs)
+Password 40: 61zZp2QGly59zElvMn9E9mHB (Execution took 31.409µs)
+Password 41: NHqjgMTYItkZOW9tIDyWkirY (Execution took 34.364µs)
+Password 42: eM4UIcBViaJYqpBNNIl8Edho (Execution took 49.675µs)
+Password 43: rCYqVhT1YxwHynozSmAmvpEN (Execution took 30.78µs)
+Password 44: 9VlPHlnJNsWwvqMPxo56yhTP (Execution took 30.535µs)
+Password 45: W0iLF1gpqSZKwNapO0W6B3ro (Execution took 29.51µs)
+Password 46: vxeyUfxT4YdEpzSD0trSp3CT (Execution took 30.498µs)
+Password 47: qHvnWx7Vw2UYh0jjRrZOnSfy (Execution took 30.666µs)
+Password 48: mAh0wDY2Scc4UNSLc1868btm (Execution took 29.44µs)
+Password 49: z3W2oJpmekuB8VNJJaH4oTrH (Execution took 31.737µs)
+Password 50: lB2pBb7JbWlVTyoViIcdEGQk (Execution took 31.452µs)
+Total execution time for 50 passwords: 2.41866ms
 ```
 
 First password takes the longest to generate because of the time needed to create the charset, though it seems that the Golang compiler reuses the charset making subsequent passwords a lot faster.
+</details>
 
 ## Roadmap
 
