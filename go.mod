@@ -8,6 +8,8 @@ require (
 	golang.design/x/clipboard v0.7.0 // requires 1.17
 )
 
+require github.com/atotto/clipboard v0.1.4
+
 require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect

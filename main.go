@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"os"
 	"time"
-	"unsafe"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
-	"golang.design/x/clipboard"
 )
 
 var appName = "pwg"
@@ -24,7 +22,7 @@ var copyToClipboard bool
 
 func main() {
 	rootCmd := &cobra.Command{
-		Use:   "pwg",
+		Use:   "password-generator",
 		Short: "A simple password generator CLI",
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
@@ -59,7 +57,7 @@ func main() {
 					}
 					if copyToClipboard {
 						// preserveClipboard()
-						writeClipboard(password, clipboard.FmtText)
+						writeClipboardV2(password)
 						zeroOutPassword(password)
 
 						fmt.Println(color.GreenString("Password copied to clipboard."))
@@ -86,14 +84,10 @@ func main() {
 					}
 				}
 			} else {
-				err := clipboard.Init()
-				if err != nil {
-					panic(err)
-				}
-
-				sizeTxt := unsafe.Sizeof(clipboard.FmtText)
-				sizeImg := unsafe.Sizeof(clipboard.FmtImage)
 				color.Yellow("Debug mode enabled.")
+				if copyToClipboard {
+					color.Yellow("Warning: Copying to clipboard is enabled, but debug mode is also enabled. Clipboard operations will be logged but not executed.")
+				}
 
 				fmt.Println("\n=== GENERATOR CONFIGURATION ===")
 				fmt.Println("Number of passwords to generate:", color.MagentaString("%d", count))
@@ -105,20 +99,12 @@ func main() {
 				fmt.Println("===============================")
 
 				fmt.Println("\n=== CLIPBOARD INFORMATION ===")
-				fmt.Println("Size of clipboard.FmtText:", color.MagentaString("%d bytes", sizeTxt))
-				fmt.Println("Size of clipboard.FmtImage:", color.MagentaString("%d bytes", sizeImg))
-				clip := clipboard.Read(clipboard.FmtImage)
-				if clip == nil {
-					fmt.Println("Clipboard does not contain image data.")
-					clip = clipboard.Read(clipboard.FmtText)
-					if clip == nil {
-						fmt.Println("Clipboard does not contain text data either.")
-					} else {
-						fmt.Println("Clipboard contains text data of size:", color.MagentaString("%d bytes", len(clip)))
-						// fmt.Println("Clipboard content:", string(clip))
-					}
+				clip := readClipboardV2()
+				if clip == nil || len(clip) == 0 {
+					fmt.Println("Clipboard does not contain any data.")
 				} else {
-					fmt.Println("Clipboard contains image data of size:", color.MagentaString("%d bytes", len(clip)))
+					fmt.Println("Clipboard contains data of size:", color.MagentaString("%d bytes", len(clip)))
+					// fmt.Println("Clipboard content:", string(clip))
 				}
 				fmt.Println("=============================")
 				fmt.Println()
