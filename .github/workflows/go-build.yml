@@ -6,7 +6,12 @@ on:
     paths-ignore:
         - 'assets/**'
         - 'web/**'
+        - 'README.md'
   pull_request:
+    paths-ignore:
+      - 'assets/**'
+      - 'web/**'
+      - 'README.md'
 
 jobs:
   build-check:
