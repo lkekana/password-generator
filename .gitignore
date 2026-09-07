@@ -92,3 +92,5 @@ go.work.sum
 # .vscode/
 # Local Netlify folder
 .netlify
+# Added by goreleaser init:
+dist/

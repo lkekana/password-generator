@@ -1,11 +1,11 @@
 module github.com/lkekana/password-generator
 
-go 1.22.12
+go 1.19
 
 require (
-	github.com/fatih/color v1.18.0
-	github.com/spf13/cobra v1.10.2
-	golang.design/x/clipboard v0.7.0
+	github.com/fatih/color v1.18.0 // requires Go 1.17
+	github.com/spf13/cobra v1.10.2 // requires 1.15
+	golang.design/x/clipboard v0.7.0 // requires 1.17
 )
 
 require (
