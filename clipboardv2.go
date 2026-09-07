@@ -8,8 +8,8 @@ import (
 )
 
 var (
-	savedClipboardv2 []byte
-	clipboardSavedv2 bool
+	savedClipboard []byte
+	clipboardSaved bool
 )
 
 func readClipboardV2() []byte {
@@ -31,19 +31,19 @@ func writeClipboardV2(data []byte) {
 func preserveClipboardV2() {
 	clipboardData := readClipboardV2()
 	if clipboardData != nil && len(clipboardData) > 0 {
-		savedClipboardv2 = clipboardData
-		clipboardSavedv2 = true
+		savedClipboard = clipboardData
+		clipboardSaved = true
 	} else {
 		fmt.Fprintln(os.Stderr, "Warning: No clipboard data to preserve.")
-		savedClipboardv2 = nil
-		clipboardSavedv2 = false
+		savedClipboard = nil
+		clipboardSaved = false
 	}
 }
 
 func restoreClipboardV2() {
-	if clipboardSavedv2 {
-		writeClipboardV2(savedClipboardv2)
-		clipboardSavedv2 = false // Prevent double restoration
-		savedClipboardv2 = nil   // Clear saved clipboard data
+	if clipboardSaved {
+		writeClipboardV2(savedClipboard)
+		clipboardSaved = false // Prevent double restoration
+		savedClipboard = nil   // Clear saved clipboard data
 	}
 }
