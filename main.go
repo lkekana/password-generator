@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var appName = "pwg"
+var appName = "password-generator"
 var length int
 var includeUppercase bool
 var includeLowercase bool
