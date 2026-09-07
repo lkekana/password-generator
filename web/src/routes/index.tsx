@@ -14,6 +14,7 @@ import type { CheckedState } from "@radix-ui/react-checkbox";
 import { generatePassword } from "#/generator";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
 import ClipboardButton from "#/components/ClipboardButton";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({ component: Home });
 
@@ -28,36 +29,55 @@ type MyTabs = "single" | "multiple";
 
 function Home() {
 	const [activeTab, setActiveTab] = useState<MyTabs>("single");
-	const [password, setPassword] = useState<string>(() =>
-		generatePassword(16, true, true, true, false),
-	);
+	const [password, setPassword] = useState<string>("");
 	const [passwordLength, setPasswordLength] = useState(16);
 	const [includeUppercase, setIncludeUppercase] = useState<CheckedState>(true);
 	const [includeLowercase, setIncludeLowercase] = useState<CheckedState>(true);
 	const [includeNumbers, setIncludeNumbers] = useState<CheckedState>(true);
 	const [includeSpecial, setIncludeSpecial] = useState<CheckedState>(false);
+	const [generationDisabled, setGenerationDisabled] = useState(false);
 
 	const [multiplePasswordCount, setMultiplePasswordCount] = useState(4);
-	const [generatedPasswords, setGeneratedPasswords] = useState<string[]>(() => {
-		const newPasswords: string[] = [];
-		for (let i = 0; i < multiplePasswordCount; i++) {
-			newPasswords.push(
-				generatePassword(
-					passwordLength,
-					!!includeUppercase,
-					!!includeLowercase,
-					!!includeNumbers,
-					!!includeSpecial,
-				),
-			);
-		}
-		return newPasswords;
-	});
+	const [generatedPasswords, setGeneratedPasswords] = useState<string[]>([]);
+
+	const generatePasswordSafe = useCallback(
+		(
+			length: number,
+			includeUppercase: boolean,
+			includeLowercase: boolean,
+			includeNumbers: boolean,
+			includeSpecialChars: boolean,
+		): string => {
+			// if (
+			// 	!includeUppercase &&
+			// 	!includeLowercase &&
+			// 	!includeNumbers &&
+			// 	!includeSpecialChars
+			// ) {
+			// 	return "";
+			// }
+
+			try {
+				return generatePassword(
+					length,
+					includeUppercase,
+					includeLowercase,
+					includeNumbers,
+					includeSpecialChars,
+				);
+			} catch (error) {
+				console.error("Error generating password:", error);
+				toast.error(`Error generating password: ${error}`);
+				return "";
+			}
+		},
+		[],
+	);
 
 	const handleRegenerate = () => {
 		if (activeTab === "single") {
 			setPassword(() =>
-				generatePassword(
+				generatePasswordSafe(
 					passwordLength,
 					!!includeUppercase,
 					!!includeLowercase,
@@ -70,7 +90,7 @@ function Home() {
 				const newPasswords: string[] = [];
 				for (let i = 0; i < multiplePasswordCount; i++) {
 					newPasswords.push(
-						generatePassword(
+						generatePasswordSafe(
 							passwordLength,
 							!!includeUppercase,
 							!!includeLowercase,
@@ -86,9 +106,23 @@ function Home() {
 
 	useEffect(() => {
 		// setGeneratedPasswords(samplePasswords.slice(0, multiplePasswordCount));
+		if (
+			!includeUppercase &&
+			!includeLowercase &&
+			!includeNumbers &&
+			!includeSpecial
+		) {
+			setGenerationDisabled(true);
+			setPassword("");
+			setGeneratedPasswords([]);
+			return;
+		} else {
+			setGenerationDisabled(false);
+		}
+
 		if (activeTab === "single") {
 			setPassword(() =>
-				generatePassword(
+				generatePasswordSafe(
 					passwordLength,
 					!!includeUppercase,
 					!!includeLowercase,
@@ -101,7 +135,7 @@ function Home() {
 				const newPasswords: string[] = [];
 				for (let i = 0; i < multiplePasswordCount; i++) {
 					newPasswords.push(
-						generatePassword(
+						generatePasswordSafe(
 							passwordLength,
 							!!includeUppercase,
 							!!includeLowercase,
